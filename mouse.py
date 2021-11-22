@@ -74,22 +74,19 @@ def compute_diff(mat1, mat2):
     return diff
 
 def find_logo_with_sliding_window(src,logo,step=2,srcRatio=2,down_sample_step=3):
-    def df():
-        show_array_img(tlogo)
-        show_array_img(partSrc)
     lw,lh=get_width_height(logo)
     sw,sh=get_width_height(src)
     threshold=5
-    for i in range(0,
+    for j in range(0,sh-lh+1,step):
+        for i in range(0,
                int(sw/srcRatio-lw+1),
             step):
-        for j in range(0,sh-lh+1,step):
             partSrc=src[j:j+lh:down_sample_step,i:i+lw:down_sample_step,:3]
             tlogo=logo[::down_sample_step,::down_sample_step,:3]
             tlogo=tlogo[:len(partSrc),:len(partSrc[0])]
             dif= np.sum(np.absolute(partSrc-tlogo))  #compute_diff(logo,src[i:i+lw,j:j+lh])
             if dif < threshold:
-                yield i,j
+                yield j,i
 
 def find_all_logos_in_region(src,logo):
     r=[]
@@ -115,6 +112,15 @@ tarMat=get_matr_from_img_file("folder.png")
 jointFolderMat=get_matr_from_img_file("folder_joint.png")
 downTriMat=get_matr_from_img_file("down_tri.png")
 rightTriMat=get_matr_from_img_file("right_tri.png")
+
+def find_all_folder_logos(src):
+    ret=[]
+    for r in find_logo_with_sliding_window(src,tarMat):
+        ret.append(r)
+    for r in find_logo_with_sliding_window(src,jointFolderMat):
+        ret.append(r)
+    return ret
+
 def test_find_logo():
 
     time_start=time.time()
@@ -135,11 +141,34 @@ def show_array_img(src):
     img=Image.fromarray(src)
     img.show()
 
+def find_first_folder_logo(pic):
+    for r in find_logo_with_sliding_window(pic,tarMat):
+        return r
+    for r in find_logo_with_sliding_window(pic,jointFolderMat):
+        return r
+
+def open_folders_shown():
+    pic= np.array(TakePic())
+    def openFunc(r):
+        stat=get_folder_stat(pic,r[0],r[1])
+        if stat=="close":
+            pg.moveTo(r[1]+pic_rect[0],r[0]+pic_rect[1])
+            pg.click()
+            return True
+        return False
+    for r in find_logo_with_sliding_window(pic,tarMat):
+        if openFunc(r):
+            return
+    for r in find_logo_with_sliding_window(pic,jointFolderMat):
+        if openFunc(r):
+            return
+
+
 def test_get_folder_stat():
     folders=[
-        #(62, 76), (300, 76),
-        #(538, 76), (572, 62), (810, 76), (844, 76),(878, 62),
-        (1320, 76)]
+        (62, 76), (300, 76),
+        (538, 76), (572, 62), (810, 76), (844, 76),(878, 62),
+       ]
     fst=[]
     for f in folders:
         fst.append(get_folder_stat(srcMat,f[0],f[1]))
@@ -164,6 +193,5 @@ def get_column_img(src,x,y):
 #
 # img.show()
 
-test_find_logo()
-test_get_folder_stat()
+open_folders_shown()
 print("hlelo")
