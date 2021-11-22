@@ -33,6 +33,7 @@ def TakePic(posFunc=None):
     if posFunc!=None:
         posFunc()
         pg.click()
+        pg.scroll(100)
     return ImageGrab.grab(pic_rect)
 
 def replace_color(img, src_clr, dst_clr):
