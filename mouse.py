@@ -96,11 +96,11 @@ def find_all_logos_in_region(src,logo):
     return r
 
 def get_folder_stat(src,x,y):
-    tri_rect=src[x:x+15,y-15:y]
+    tri_rect=src[y:y+15,x-15:x]
     #show_array_img(tri_rect)
-    if len(find_all_logos_in_region(tri_rect,downTriMat))!=0:
+    if len(find_logo_with_sliding_window(tri_rect,downTriMat))!=0:
         return "open"
-    if len(find_all_logos_in_region(tri_rect,rightTriMat))!=0:
+    if len(find_logo_with_sliding_window(tri_rect,rightTriMat))!=0:
         return "close"
 
 def get_matr_from_img_file(fn):
@@ -164,15 +164,26 @@ def find_first_folder_logo(pic):
     for r in find_logo_with_sliding_window(pic,jointFolderMat):
         return r
 
+def circle_target(src,locs,logo):
+    h,w = logo.shape[:2]
+    tsrc=np.copy(src)
+    for l in locs:
+        cv.rectangle(tsrc, l, (l[0] + w, l[1] + h), (255,0,0), 1)
+    img=Image.fromarray(tsrc)
+    img.show()
+
 def open_folders_shown():
     has_close=False
     pic= np.array(TakePic())
     fs=find_logo_with_sliding_window(pic,tarMat)
     fs.reverse()
+    if len(fs)>0:
+        fs.pop(0)
+    # circle_target(pic,fs,tarMat)
     for r in fs:
         stat=get_folder_stat(pic,r[0],r[1])
         if stat=="close":
-            pg.moveTo(r[1]+pic_rect[0],r[0]+pic_rect[1])
+            pg.moveTo(r[0]+pic_rect[0],r[1]+pic_rect[1])
             pg.click()
             has_close=True
     return has_close
