@@ -73,24 +73,27 @@ def compute_diff(mat1, mat2):
                 diff+=abs(mat1[j][i][k]-mat2[j][i][k])
     return diff
 
-def find_logo_with_sliding_window(src,logo,step=2,srcRatio=2,down_sample_step=3):
+def find_logo_with_sliding_window(src,logo,rect=1,step=2,srcRatio=2,down_sample_step=3):
     lw,lh=get_width_height(logo)
     sw,sh=get_width_height(src)
-    threshold=5
-    for j in range(0,sh-lh+1,step):
-        for i in range(0,
-               int(sw/srcRatio-lw+1),
-            step):
-            partSrc=src[j:j+lh:down_sample_step,i:i+lw:down_sample_step,:3]
-            tlogo=logo[::down_sample_step,::down_sample_step,:3]
-            tlogo=tlogo[:len(partSrc),:len(partSrc[0])]
-            dif= np.sum(np.absolute(partSrc-tlogo))  #compute_diff(logo,src[i:i+lw,j:j+lh])
-            if dif < threshold:
+    threshold=1000
+    if rect==1:
+        rect=(0,0,sw+1,sh+1)
+    for j in range(rect[1],rect[3]):
+        for i in range(rect[0],rect[2]):
+            partSrc=src[j:j+lh,i:i+lw,:3]
+            tlogo=logo[::,::,:3]
+            #tlogo=tlogo[:len(partSrc),:len(partSrc[0])]
+            if len(partSrc)<len(tlogo) or len(partSrc[0])<len(tlogo[0]):
+                break
+            if not np.any(partSrc-tlogo):
+            # dif= np.sum(np.absolute(partSrc-tlogo))  #compute_diff(logo,src[i:i+lw,j:j+lh])
+            # if dif < threshold:
                 yield j,i
 
 def find_all_logos_in_region(src,logo):
     r=[]
-    for l in find_logo_with_sliding_window(src,logo,1,1,1):
+    for l in find_logo_with_sliding_window(src,logo):
         r.append(l)
     return r
 
@@ -114,11 +117,32 @@ downTriMat=get_matr_from_img_file("down_tri.png")
 rightTriMat=get_matr_from_img_file("right_tri.png")
 
 def find_all_folder_logos(src):
+    ret1=[]
+    ret2=[]
     ret=[]
-    for r in find_logo_with_sliding_window(src,tarMat):
-        ret.append(r)
-    for r in find_logo_with_sliding_window(src,jointFolderMat):
-        ret.append(r)
+    f_rect=(40,0,160,len(src))
+    time_start=time.time()
+    for r in find_logo_with_sliding_window(src,tarMat,f_rect):
+        ret1.append(r)
+    for r in find_logo_with_sliding_window(src,jointFolderMat,f_rect):
+        ret2.append(r)
+    time_end=time.time()
+    cost=time_end-time_start
+    i=0
+    j=0
+    while i<len(ret1) and j<len(ret2):
+        if ret1[i][0]<ret2[j][0]:
+            ret.append(ret1[i])
+            i+=1
+        else:
+            ret.append(ret2[j])
+            j+=1
+    while i<len(ret1):
+        ret.append(ret1[i])
+        i+=1
+    while j<len(ret2):
+        ret.append(ret2[j])
+        j+=1
     return ret
 
 def test_find_logo():
@@ -149,20 +173,13 @@ def find_first_folder_logo(pic):
 
 def open_folders_shown():
     pic= np.array(TakePic())
-    def openFunc(r):
+    fs=find_all_folder_logos(pic)
+    fs.reverse()
+    for r in fs:
         stat=get_folder_stat(pic,r[0],r[1])
         if stat=="close":
             pg.moveTo(r[1]+pic_rect[0],r[0]+pic_rect[1])
             pg.click()
-            return True
-        return False
-    for r in find_logo_with_sliding_window(pic,tarMat):
-        if openFunc(r):
-            return
-    for r in find_logo_with_sliding_window(pic,jointFolderMat):
-        if openFunc(r):
-            return
-
 
 def test_get_folder_stat():
     folders=[
