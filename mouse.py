@@ -17,23 +17,23 @@ import numpy as np
 #rectwnd=win32gui.GetWindowRect(hwnd)
 #b=win32gui.ShowWindow(hwnd,1)
 
-scroll_start_pos=(325,74)
-scroll_end_pos=(325,1398)
+scroll_start_pos=(332,80)
+scroll_end_pos=(332,1394)
 pic_rect=(0,70,330,1400)
 
-def moveToScrollDownPos():
+def ScrollDown():
     pg.moveTo(scroll_end_pos[0],1400)
     pg.moveTo(scroll_end_pos)
+    pg.click()
+    pg.scroll(100)
 
-def moveToScrollUpPos():
+def ScrollUp():
     pg.moveTo(scroll_start_pos[0],1400)
     pg.moveTo(scroll_start_pos)
+    pg.click()
+    pg.scroll(-100)
 
-def TakePic(posFunc=None):
-    if posFunc!=None:
-        posFunc()
-        pg.click()
-        pg.scroll(100)
+def TakePic():
     return ImageGrab.grab(pic_rect)
 
 def replace_color(img, src_clr, dst_clr):
@@ -172,6 +172,7 @@ def find_first_folder_logo(pic):
         return r
 
 def open_folders_shown():
+    has_close=False
     pic= np.array(TakePic())
     fs=find_all_folder_logos(pic)
     fs.reverse()
@@ -180,16 +181,24 @@ def open_folders_shown():
         if stat=="close":
             pg.moveTo(r[1]+pic_rect[0],r[0]+pic_rect[1])
             pg.click()
+            has_close=True
+    return has_close
 
-def test_get_folder_stat():
-    folders=[
-        (62, 76), (300, 76),
-        (538, 76), (572, 62), (810, 76), (844, 76),(878, 62),
-       ]
-    fst=[]
-    for f in folders:
-        fst.append(get_folder_stat(srcMat,f[0],f[1]))
-    print("he")
+# def test_get_folder_stat():
+#     folders=[
+#         (62, 76), (300, 76),
+#         (538, 76), (572, 62), (810, 76), (844, 76),(878, 62),
+#        ]
+#     fst=[]
+#     for f in folders:
+#         fst.append(get_folder_stat(srcMat,f[0],f[1]))
+#     print("he")
+
+def open_all_folders():
+    while 1:
+        b=open_folders_shown()
+        if not b:
+            ScrollDown()
 
 def get_column_img(src,x,y):
     anchor_range=(-100,-2,300,20)
@@ -210,5 +219,5 @@ def get_column_img(src,x,y):
 #
 # img.show()
 
-open_folders_shown()
+open_all_folders()
 print("hlelo")
