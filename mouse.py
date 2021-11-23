@@ -4,6 +4,7 @@ import win32gui
 from PIL import ImageGrab
 from PIL import Image
 import numpy as np
+import cv2 as cv
 
 # pg.moveTo(1513,908)
 # pg.click()
@@ -73,23 +74,20 @@ def compute_diff(mat1, mat2):
                 diff+=abs(mat1[j][i][k]-mat2[j][i][k])
     return diff
 
-def find_logo_with_sliding_window(src,logo,rect=1,step=2,srcRatio=2,down_sample_step=3):
-    lw,lh=get_width_height(logo)
-    sw,sh=get_width_height(src)
-    threshold=1000
-    if rect==1:
-        rect=(0,0,sw+1,sh+1)
-    for j in range(rect[1],rect[3]):
-        for i in range(rect[0],rect[2]):
-            partSrc=src[j:j+lh,i:i+lw,:3]
-            tlogo=logo[::,::,:3]
-            #tlogo=tlogo[:len(partSrc),:len(partSrc[0])]
-            if len(partSrc)<len(tlogo) or len(partSrc[0])<len(tlogo[0]):
-                break
-            if not np.any(partSrc-tlogo):
-            # dif= np.sum(np.absolute(partSrc-tlogo))  #compute_diff(logo,src[i:i+lw,j:j+lh])
-            # if dif < threshold:
-                yield j,i
+def find_logo_with_sliding_window(src,logo):
+    tsrc=src[::,::,:3]
+    tlogo=logo[::,::,:3]
+    res = cv.matchTemplate(tsrc,tlogo,cv.TM_CCOEFF_NORMED)
+    threshold = 0.9
+    loc = np.where( res >= threshold)
+    ret=[]
+    #h,w = logo.shape[:2]
+    for pt in zip(*loc[::-1]):
+        #cv.rectangle(src, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
+        ret.append(pt)
+    #img=Image.fromarray(src)
+    #img.show()
+    return ret
 
 def find_all_logos_in_region(src,logo):
     r=[]
@@ -122,9 +120,9 @@ def find_all_folder_logos(src):
     ret=[]
     f_rect=(40,0,160,len(src))
     time_start=time.time()
-    for r in find_logo_with_sliding_window(src,tarMat,f_rect):
+    for r in find_logo_with_sliding_window(src,tarMat):
         ret1.append(r)
-    for r in find_logo_with_sliding_window(src,jointFolderMat,f_rect):
+    for r in find_logo_with_sliding_window(src,jointFolderMat):
         ret2.append(r)
     time_end=time.time()
     cost=time_end-time_start
@@ -149,15 +147,10 @@ def test_find_logo():
 
     time_start=time.time()
 
-    rs=[]
-    rs2=[]
-    for r in find_logo_with_sliding_window(srcMat,tarMat):
-        rs.append(r)
-    for r in find_logo_with_sliding_window(srcMat,jointFolderMat):
-        rs2.append(r)
+    rs1=find_logo_with_sliding_window(srcMat,tarMat)
+    rs2=find_logo_with_sliding_window(srcMat,jointFolderMat)
 
     time_end=time.time()
-    assert(len(rs)==6)
     cost=time_end-time_start
     print('time cost',cost,'s')
 
@@ -174,7 +167,7 @@ def find_first_folder_logo(pic):
 def open_folders_shown():
     has_close=False
     pic= np.array(TakePic())
-    fs=find_all_folder_logos(pic)
+    fs=find_logo_with_sliding_window(pic,tarMat)
     fs.reverse()
     for r in fs:
         stat=get_folder_stat(pic,r[0],r[1])
