@@ -5,6 +5,7 @@ from PIL import ImageGrab
 from PIL import Image
 import numpy as np
 import cv2 as cv
+import easyocr
 
 # pg.moveTo(1513,908)
 # pg.click()
@@ -21,6 +22,8 @@ import cv2 as cv
 scroll_start_pos=(332,80)
 scroll_end_pos=(332,1394)
 pic_rect=(0,70,330,1400)
+
+reader = easyocr.Reader(['ch_sim','en'])
 
 def ScrollDown():
     pg.moveTo(scroll_end_pos[0],1400)
@@ -223,5 +226,14 @@ def get_column_img(src,x,y):
 #
 # img.show()
 
-open_all_folders()
+def test_ocr():
+    time_start=time.time()
+    time_end=time.time()
+    cost1=time_end-time_start
+    result = reader.readtext(srcMat, detail = 0)
+    time_end=time.time()
+    cost=time_end-time_start
+    print("kkk")
+
+test_ocr()
 print("hlelo")
