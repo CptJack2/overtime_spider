@@ -246,12 +246,12 @@ def split_img(img):
     mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel)
 
     bboxes = []
-    bboxes_img = img.copy()
+    #bboxes_img = img.copy()
     contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = contours[0] if len(contours) == 2 else contours[1]
     for cntr in contours:
         x,y,w,h = cv2.boundingRect(cntr)
-        cv2.rectangle(bboxes_img, (x, y), (x+w, y+h), (0, 0, 255), 1)
+        #cv2.rectangle(bboxes_img, (x, y), (x+w, y+h), (0, 0, 255), 1)
         bboxes.append((x,y,w,h))
     return bboxes
 
