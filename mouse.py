@@ -1,10 +1,11 @@
+import re
 import pyautogui as pg
 import time
 import win32gui
 from PIL import ImageGrab
 from PIL import Image
 import numpy as np
-import cv2 as cv
+import cv2
 import easyocr
 
 # pg.moveTo(1513,908)
@@ -80,7 +81,7 @@ def compute_diff(mat1, mat2):
 def find_logo_with_sliding_window(src,logo):
     tsrc=src[::,::,:3]
     tlogo=logo[::,::,:3]
-    res = cv.matchTemplate(tsrc,tlogo,cv.TM_CCOEFF_NORMED)
+    res = cv2.matchTemplate(tsrc,tlogo,cv2.TM_CCOEFF_NORMED)
     threshold = 0.9
     loc = np.where( res >= threshold)
     ret=[]
@@ -171,7 +172,7 @@ def circle_target(src,locs,logo):
     h,w = logo.shape[:2]
     tsrc=np.copy(src)
     for l in locs:
-        cv.rectangle(tsrc, l, (l[0] + w, l[1] + h), (255,0,0), 1)
+        cv2.rectangle(tsrc, l, (l[0] + w, l[1] + h), (255,0,0), 1)
     img=Image.fromarray(tsrc)
     img.show()
 
@@ -235,5 +236,26 @@ def test_ocr():
     cost=time_end-time_start
     print("kkk")
 
-test_ocr()
+def split_img(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    mask = cv2.inRange(gray, 200, 255)
+    mask=255-mask
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel)
+
+    bboxes = []
+    bboxes_img = img.copy()
+    contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = contours[0] if len(contours) == 2 else contours[1]
+    for cntr in contours:
+        x,y,w,h = cv2.boundingRect(cntr)
+        cv2.rectangle(bboxes_img, (x, y), (x+w, y+h), (0, 0, 255), 1)
+        bboxes.append((x,y,w,h))
+    return bboxes
+
+split_img(np.array(TakePic()))
+
+test_read_folder()
 print("hlelo")
