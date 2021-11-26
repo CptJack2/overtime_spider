@@ -276,12 +276,12 @@ def parse_box(box):
 
 groupStack=[]
 allPeopleMap={}
-def read_folder_recur(folderName):
+
+#找到当前要遍历的文件夹位置
+def get_folder_pos(folderName):
     src=np.array(TakePic())
     boxes,bimg=split_img(src)
-    type=None
     stat=None
-    fn=None
     targetb=None
     for b in boxes:
         type,stat,fn=parse_box(src[b[1]:b[1]+b[3],b[0]:b[0]+b[2]])
@@ -289,12 +289,33 @@ def read_folder_recur(folderName):
             targetb=b
             break
     if not targetb:
-        return
+        return None,None
+    return targetb,stat
+
+def read_folder_recur(folderName):
+    pos,stat=get_folder_pos(folderName)
     if stat=="close":
-        pg.moveTo(b[0],b[1]+pic_rect[1])
+        pg.moveTo(pos[0],pos[1]+pic_rect[1])
         pg.click()
 
     groupStack.append(folderName)
+
+    src=np.array(TakePic())
+    boxes,bimg=split_img(src)
+    folders=[]
+    for b in boxes:
+        if b[1]<=targetb[1]:
+            continue
+        type,statOrEn,fnOrCn=parse_box(src[b[1]:b[1]+b[3],b[0]:b[0]+b[2]])
+        if type=="folder" :
+            folders.append(fnOrCn)
+        else:
+            t=allPeopleMap
+            for s in groupStack:
+                if s not in t:
+                    t[s]={}
+                t=t[s]
+            t[statOrEn]=(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
 
     print("kkk")
 
