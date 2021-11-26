@@ -274,11 +274,32 @@ def parse_box(box):
         fn=read_text_row(box)
         return type,stat,fn
 
-src=np.array(TakePic())
-boxes,bimg=split_img(src)
-for b in boxes:
-    a,b,c=parse_box(src[b[1]:b[1]+b[3],b[0]:b[0]+b[2]])
-    print("hek")
+groupStack=[]
+allPeopleMap={}
+def read_folder_recur(folderName):
+    src=np.array(TakePic())
+    boxes,bimg=split_img(src)
+    type=None
+    stat=None
+    fn=None
+    targetb=None
+    for b in boxes:
+        type,stat,fn=parse_box(src[b[1]:b[1]+b[3],b[0]:b[0]+b[2]])
+        if type=="folder" and fn==folderName:
+            targetb=b
+            break
+    if not targetb:
+        return
+    if stat=="close":
+        pg.moveTo(b[0],b[1]+pic_rect[1])
+        pg.click()
+
+    groupStack.append(folderName)
+
+    print("kkk")
+
+read_folder_recur("总办")
+print("hek")
 
 
 test_read_folder()
