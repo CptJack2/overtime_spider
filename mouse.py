@@ -41,31 +41,6 @@ def ScrollUp():
 def TakePic():
     return ImageGrab.grab(pic_rect)
 
-def replace_color(img, src_clr, dst_clr):
-    ''' 通过矩阵操作颜色替换程序
-    @param	img:	图像矩阵
-    @param	src_clr:	需要替换的颜色(r,g,b)
-    @param	dst_clr:	目标颜色		(r,g,b)
-    @return				替换后的图像矩阵
-    '''
-    img_arr = np.asarray(img, dtype=np.double)
-
-    r_img = img_arr[:,:,0].copy()
-    g_img = img_arr[:,:,1].copy()
-    b_img = img_arr[:,:,2].copy()
-
-    img = r_img * 256 * 256 + g_img * 256 + b_img
-    src_color = src_clr[0] * 256 * 256 + src_clr[1] * 256 + src_clr[2] #编码
-
-    r_img[img == src_color] = dst_clr[0]
-    g_img[img == src_color] = dst_clr[1]
-    b_img[img == src_color] = dst_clr[2]
-
-    dst_img = np.array([r_img, g_img, b_img], dtype=np.uint8)
-    dst_img = dst_img.transpose(1,2,0)
-
-    return dst_img
-
 def get_width_height(mat):
     return len(mat[0]),len(mat)
 
@@ -113,7 +88,7 @@ def get_matr_from_img_file(fn):
     return mat
 
 srcMat=get_matr_from_img_file("a.png")
-tarMat=get_matr_from_img_file("folder.png")
+folderMat=get_matr_from_img_file("folder.png")
 jointFolderMat=get_matr_from_img_file("folder_joint.png")
 downTriMat=get_matr_from_img_file("down_tri.png")
 rightTriMat=get_matr_from_img_file("right_tri.png")
@@ -124,7 +99,7 @@ def find_all_folder_logos(src):
     ret=[]
     f_rect=(40,0,160,len(src))
     time_start=time.time()
-    for r in find_logo_with_sliding_window(src,tarMat):
+    for r in find_logo_with_sliding_window(src, folderMat):
         ret1.append(r)
     for r in find_logo_with_sliding_window(src,jointFolderMat):
         ret2.append(r)
@@ -151,7 +126,7 @@ def test_find_logo():
 
     time_start=time.time()
 
-    rs1=find_logo_with_sliding_window(srcMat,tarMat)
+    rs1=find_logo_with_sliding_window(srcMat, folderMat)
     rs2=find_logo_with_sliding_window(srcMat,jointFolderMat)
 
     time_end=time.time()
@@ -163,7 +138,7 @@ def show_array_img(src):
     img.show()
 
 def find_first_folder_logo(pic):
-    for r in find_logo_with_sliding_window(pic,tarMat):
+    for r in find_logo_with_sliding_window(pic, folderMat):
         return r
     for r in find_logo_with_sliding_window(pic,jointFolderMat):
         return r
@@ -179,7 +154,7 @@ def circle_target(src,locs,logo):
 def open_folders_shown():
     has_close=False
     pic= np.array(TakePic())
-    fs=find_logo_with_sliding_window(pic,tarMat)
+    fs=find_logo_with_sliding_window(pic, folderMat)
     fs.reverse()
     if len(fs)>0:
         fs.pop(0)
@@ -226,6 +201,32 @@ def get_column_img(src,x,y):
 # np.linalg.norm()
 #
 # img.show()
+row_height=35
+
+def read_text_row(pic):
+    res=reader.readtext(pic, detail = 0)
+    return res[0]
+
+def get_people_name(pic):
+    text=read_text_row(pic)
+    pat=re.compile(r"(\w+)[\(\[]*(\w+)[\)\]]*")
+    match=pat.match(text)
+    return match.group(1),match.group(2)
+
+def get_row(pic,h):
+    row=pic[h:h+row_height]
+    return row
+
+def read_folder(pic,hs,he):
+    rf=get_row(pic,hs)
+    fn=read_text_row(rf)
+    for h in range(hs+row_height,he,row_height):
+        r=get_row(pic,h)
+        en,cn=get_people_name(r)
+
+def test_read_folder():
+    pic=get_matr_from_img_file("read_folder.png")
+    read_folder(pic,0,len(pic))
 
 def test_ocr():
     time_start=time.time()
@@ -246,16 +247,39 @@ def split_img(img):
     mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel)
 
     bboxes = []
-    #bboxes_img = img.copy()
+    bboxes_img = img.copy()
     contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = contours[0] if len(contours) == 2 else contours[1]
     for cntr in contours:
         x,y,w,h = cv2.boundingRect(cntr)
-        #cv2.rectangle(bboxes_img, (x, y), (x+w, y+h), (0, 0, 255), 1)
+        cv2.rectangle(bboxes_img, (x, y), (x+w, y+h), (0, 0, 255), 1)
         bboxes.append((x,y,w,h))
-    return bboxes
 
-split_img(np.array(TakePic()))
+    bboxes.sort(key=lambda b:b[1])
+    return bboxes,bboxes_img
+
+def parse_box(box):
+    type="people"
+    stat="open"
+    if len(find_logo_with_sliding_window(box, folderMat))!=0:
+        type="folder"
+        if len(find_logo_with_sliding_window(box,downTriMat))!=0:
+            stat="open"
+        if len(find_logo_with_sliding_window(box,rightTriMat))!=0:
+            stat="close"
+    if type=="people":
+        en,cn=get_people_name(box)
+        return type,en,cn
+    if type=="folder":
+        fn=read_text_row(box)
+        return type,stat,fn
+
+src=np.array(TakePic())
+boxes,bimg=split_img(src)
+for b in boxes:
+    a,b,c=parse_box(src[b[1]:b[1]+b[3],b[0]:b[0]+b[2]])
+    print("hek")
+
 
 test_read_folder()
 print("hlelo")
