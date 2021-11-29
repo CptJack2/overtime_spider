@@ -1,6 +1,5 @@
 current_stack=[]
 current_available_moves_stack=[]
-current_move_index_stack=[]
 bottles=[]
 available_solution=[]
 
@@ -89,18 +88,23 @@ def pop_stack():
 def push_stack(move):
     current_stack.append(move)
     current_available_moves_stack.append(find_all_available_moves())
-    current_move_index_stack.append(0)
     bottles[move.to_bottle].insert(move.color)
     bottles[move.from_bottle].pop(0)
 
 def main():
     current_stack.append("dummy_head")
     current_available_moves_stack.append(find_all_available_moves())
-    current_move_index_stack.append(0)
     while True:
-        i=current_move_index_stack[0]
-        while i<len(current_available_moves_stack[-1]):
-            
+        #如果当前是可行解,存下并推出栈
+        if found_solution():
+            available_solution.append(current_stack)
+            pop_stack()
+            continue
+        #从当前最顶的可行队列取第一个move,加入栈
+        while len(current_available_moves_stack[-1])>0:
+            m=current_available_moves_stack[-1][0]
+            del current_available_moves_stack[-1][0]
+            push_stack(m)
         #可行方案处理完毕，退出
         if len(current_stack)==1:
             break
@@ -108,5 +112,5 @@ def main():
     #recur_find()
 
 
-
+init()
 main()
