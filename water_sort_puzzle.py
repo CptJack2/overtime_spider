@@ -1,6 +1,9 @@
+import copy
+
 current_stack=[]
 current_available_moves_stack=[]
 bottles=[]
+bottles_copy=[]
 available_solution=[]
 
 red="red"
@@ -18,6 +21,7 @@ orange="orange"
 
 def init():
     global bottles
+    global bottles_copy
     bottles=[
         [green,blue,blue,blue],
         [blue,green,green,green],
@@ -39,6 +43,7 @@ def init():
     #     [],
     #     []
     # ]
+    bottles_copy=copy.deepcopy(bottles)
 
 class move:
     def __init__(self,i,j,c,n=1):
@@ -75,8 +80,8 @@ def find_all_available_moves():
                     moves.append(move(i,j,b[0],n))
     return moves
 
-def found_solution():
-    for b in bottles:
+def found_solution(arg_bottles):
+    for b in arg_bottles:
         if len(b)==0:
             continue
         if len(b)!=4:
@@ -94,7 +99,7 @@ def recur_find():
         bottles[m.to_bottle].insert(m.color)
         del bottles[m.from_bottle][0]
         #检查是否一个可行solution
-        if found_solution():
+        if found_solution(bottles):
             available_solution.append(current_stack)
             pop_stack()
             continue
@@ -117,12 +122,22 @@ def push_stack(move):
         bottles[move.from_bottle].pop(0)
     current_available_moves_stack.append(find_all_available_moves())
 
+def verify_solution():
+    for sin,s in enumerate(available_solution):
+        bs=copy.deepcopy(bottles_copy)
+        for move in s:
+            for i in range(move.num):
+                bs[move.to_bottle].insert(0,move.color)
+                bs[move.from_bottle].pop(0)
+        if not found_solution(bs):
+            print("bad solution")
+
 def main():
     current_stack.append("dummy_head")
     current_available_moves_stack.append(find_all_available_moves())
     while True:
         #如果当前是可行解,存下并推出栈
-        if found_solution():
+        if found_solution(bottles):
             available_solution.append(current_stack[1:])
             pop_stack()
             continue
@@ -137,8 +152,9 @@ def main():
         #可行方案处理完毕，退出
         else:
             break
-    print("hello")
 
+    verify_solution()
+    print("hello")
     #recur_find()
 
 
