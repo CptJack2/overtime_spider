@@ -22,9 +22,14 @@ orange="orange"
 def init():
     global bottles
     global bottles_copy
+    # bottles=[
+    #     [green,blue,blue,blue],
+    #     [blue,green,green,green],
+    #     []
+    # ]
     bottles=[
-        [green,blue,blue,blue],
-        [blue,green,green,green],
+        [yellow,yellow,yellow,],
+        [yellow],
         []
     ]
     # bottles=[
@@ -142,7 +147,7 @@ def main():
             pop_stack()
             continue
         #从当前最顶的可行队列取第一个move,加入栈
-        if len(current_available_moves_stack[-1])>0:
+        elif len(current_available_moves_stack[-1])>0:
             m=current_available_moves_stack[-1][0]
             del current_available_moves_stack[-1][0]
             push_stack(m)
@@ -152,6 +157,7 @@ def main():
         #可行方案处理完毕，退出
         else:
             break
+            print("hello")
 
     verify_solution()
     print("hello")
