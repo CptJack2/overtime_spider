@@ -19,21 +19,26 @@ orange="orange"
 def init():
     global bottles
     bottles=[
-        [grey,blue,navy_blue,pale_green],
-        [navy_blue,grey,pink,green],
-        [purple,sky_blue,sea_green,green],
-        [orange,blue,pink,sea_green],
-        [pink,navy_blue,yellow,sea_green],
-        [red,blue,sea_green,orange],
-        [pale_green,purple,green,purple],
-        [purple,pale_green,green,red],
-        [orange,sky_blue,sky_blue,navy_blue],
-        [pale_green,pink,blue,red],
-        [yellow,sky_blue,orange,grey],
-        [yellow,red,grey,yellow],
-        [],
+        [green,blue,blue,blue],
+        [blue,green,green,green],
         []
     ]
+    # bottles=[
+    #     [grey,blue,navy_blue,pale_green],
+    #     [navy_blue,grey,pink,green],
+    #     [purple,sky_blue,sea_green,green],
+    #     [orange,blue,pink,sea_green],
+    #     [pink,navy_blue,yellow,sea_green],
+    #     [red,blue,sea_green,orange],
+    #     [pale_green,purple,green,purple],
+    #     [purple,pale_green,green,red],
+    #     [orange,sky_blue,sky_blue,navy_blue],
+    #     [pale_green,pink,blue,red],
+    #     [yellow,sky_blue,orange,grey],
+    #     [yellow,red,grey,yellow],
+    #     [],
+    #     []
+    # ]
 
 class move:
     def __init__(self,i,j,c):
@@ -57,6 +62,8 @@ def found_solution():
     for b in bottles:
         if len(b)==0:
             continue
+        if len(b)!=4:
+            return False
         color=b[0]
         for c in b:
             if c!=color:
@@ -87,9 +94,9 @@ def pop_stack():
 
 def push_stack(move):
     current_stack.append(move)
-    current_available_moves_stack.append(find_all_available_moves())
-    bottles[move.to_bottle].insert(move.color)
+    bottles[move.to_bottle].insert(0,move.color)
     bottles[move.from_bottle].pop(0)
+    current_available_moves_stack.append(find_all_available_moves())
 
 def main():
     current_stack.append("dummy_head")
@@ -97,14 +104,17 @@ def main():
     while True:
         #如果当前是可行解,存下并推出栈
         if found_solution():
-            available_solution.append(current_stack)
+            available_solution.append(current_stack[1:])
             pop_stack()
             continue
         #从当前最顶的可行队列取第一个move,加入栈
-        while len(current_available_moves_stack[-1])>0:
+        if len(current_available_moves_stack[-1])>0:
             m=current_available_moves_stack[-1][0]
             del current_available_moves_stack[-1][0]
             push_stack(m)
+        #当前无可用move,只能倒退一步
+        else:
+            pop_stack()
         #可行方案处理完毕，退出
         if len(current_stack)==1:
             break
