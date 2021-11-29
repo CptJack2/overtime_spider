@@ -41,10 +41,17 @@ def init():
     # ]
 
 class move:
-    def __init__(self,i,j,c):
+    def __init__(self,i,j,c,n=1):
         self.from_bottle=i
         self.to_bottle=j
         self.color=c
+        self.num=n
+
+# def no
+#
+# rule_filters=[
+#
+# ]
 
 def find_all_available_moves():
     moves=[]
@@ -54,8 +61,18 @@ def find_all_available_moves():
         for j,b2 in enumerate(bottles):
             if i==j:
                 continue
+            #两个瓶子最顶上的颜色相同,或者b2是空瓶,就可以倒过去.
             if len(b2)==0 or b2[0]==b[0] and len(b2)<4:
-                moves.append(move(i,j,b[0]))
+                #b瓶里相同颜色的需要一次倒过去
+                n=0
+                for c in b:
+                    if c==b[0]:
+                        n+=1
+                    else:
+                        break
+                #需要b2有足够的空间一次装满才能倒过去,避免两瓶反复倒
+                if n<4-len(b2):
+                    moves.append(move(i,j,b[0],n))
     return moves
 
 def found_solution():
@@ -89,13 +106,15 @@ def recur_find():
 def pop_stack():
     m=current_stack.pop()
     current_available_moves_stack.pop()
-    bottles[m.from_bottle].insert(0,m.color)
-    bottles[m.to_bottle].pop(0)
+    for i in range(move.num):
+        bottles[m.from_bottle].insert(0,m.color)
+        bottles[m.to_bottle].pop(0)
 
 def push_stack(move):
     current_stack.append(move)
-    bottles[move.to_bottle].insert(0,move.color)
-    bottles[move.from_bottle].pop(0)
+    for i in range(move.num):
+        bottles[move.to_bottle].insert(0,move.color)
+        bottles[move.from_bottle].pop(0)
     current_available_moves_stack.append(find_all_available_moves())
 
 def main():
