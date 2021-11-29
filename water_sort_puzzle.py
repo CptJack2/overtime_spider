@@ -71,7 +71,7 @@ def find_all_available_moves():
                     else:
                         break
                 #需要b2有足够的空间一次装满才能倒过去,避免两瓶反复倒
-                if n<4-len(b2):
+                if n<=4-len(b2):
                     moves.append(move(i,j,b[0],n))
     return moves
 
@@ -106,7 +106,7 @@ def recur_find():
 def pop_stack():
     m=current_stack.pop()
     current_available_moves_stack.pop()
-    for i in range(move.num):
+    for i in range(m.num):
         bottles[m.from_bottle].insert(0,m.color)
         bottles[m.to_bottle].pop(0)
 
@@ -132,11 +132,12 @@ def main():
             del current_available_moves_stack[-1][0]
             push_stack(m)
         #当前无可用move,只能倒退一步
-        else:
+        elif len(current_stack)>1:
             pop_stack()
         #可行方案处理完毕，退出
-        if len(current_stack)==1:
+        else:
             break
+    print("hello")
 
     #recur_find()
 
