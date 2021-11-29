@@ -27,6 +27,10 @@ def init():
     #     [blue,green,green,green],
     #     []
     # ]
+    # bottles=[
+    #     [yellow,yellow,yellow,],
+    #     [yellow],
+    # ]
     bottles=[
         [yellow,yellow,yellow,],
         [yellow],
