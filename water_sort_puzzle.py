@@ -2,6 +2,7 @@ import copy
 
 current_stack=[]
 current_available_moves_stack=[]
+bottle_snap_shot_stack=[]
 bottles=[]
 bottles_copy=[]
 available_solution=[]
@@ -144,21 +145,24 @@ def verify_solution():
 def main():
     current_stack.append("dummy_head")
     current_available_moves_stack.append(find_all_available_moves())
+    print("hello")
     while True:
         #如果当前是可行解,存下并推出栈
         if found_solution(bottles):
             available_solution.append(current_stack[1:])
             pop_stack()
-            continue
+            print("hello")
         #从当前最顶的可行队列取第一个move,加入栈
         elif len(current_available_moves_stack[-1])>0:
             m=current_available_moves_stack[-1][0]
             del current_available_moves_stack[-1][0]
             push_stack(m)
-        #当前无可用move,只能倒退一步
+            print("hello")
+    #当前无可用move,只能倒退一步
         elif len(current_stack)>1:
             pop_stack()
-        #可行方案处理完毕，退出
+            print("hello")
+    #可行方案处理完毕，退出
         else:
             break
             print("hello")

@@ -1,12 +1,12 @@
 import re
-import pyautogui as pg
 import time
-import win32gui
-from PIL import ImageGrab
-from PIL import Image
-import numpy as np
+
 import cv2
 import easyocr
+import numpy as np
+import pyautogui as pg
+from PIL import Image
+from PIL import ImageGrab
 
 # pg.moveTo(1513,908)
 # pg.click()
@@ -252,16 +252,36 @@ def split_img(img):
     contours = contours[0] if len(contours) == 2 else contours[1]
     for cntr in contours:
         x,y,w,h = cv2.boundingRect(cntr)
-        cv2.rectangle(bboxes_img, (x, y), (x+w, y+h), (0, 0, 255), 1)
         bboxes.append((x,y,w,h))
 
     bboxes.sort(key=lambda b:b[1])
+    i=0
+    while i < len(bboxes) - 1:
+        if abs(bboxes[i][1] - bboxes[i + 1][1]) <= 3 :
+            neww=max(bboxes[i][0]+bboxes[i][2],bboxes[i+1][0]+bboxes[i+1][2])- \
+                 min(bboxes[i][0],bboxes[i+1][0])
+            newh=max(bboxes[i][1]+bboxes[i][3],bboxes[i+1][1]+bboxes[i+1][3])- \
+                min(bboxes[i][1],bboxes[i+1][1])
+            t = (min(bboxes[i][0],bboxes[i+1][0]),
+               min(bboxes[i][1],bboxes[i+1][1]),
+               neww,newh)
+            del bboxes[i+1]
+            del bboxes[i]
+            bboxes.insert(i,t)
+        else:
+            i+=1
+
+    for b in bboxes:
+        x,y,w,h=b
+        cv2.rectangle(bboxes_img, (x, y), (x+w, y+h), (0, 0, 255), 1)
+
     return bboxes,bboxes_img
 
 def parse_box(box):
     type="people"
     stat="open"
-    if len(find_logo_with_sliding_window(box, folderMat))!=0:
+    if len(find_logo_with_sliding_window(box, folderMat))!=0 or \
+        len(find_logo_with_sliding_window(box, jointFolderMat))!=0:
         type="folder"
         if len(find_logo_with_sliding_window(box,downTriMat))!=0:
             stat="open"
@@ -304,18 +324,31 @@ def read_folder_recur(folderName):
     boxes,bimg=split_img(src)
     folders=[]
     for b in boxes:
-        if b[1]<=targetb[1]:
+        #不是这个文件夹内的跳过
+        if b[1]<=pos[1] or\
+           b[0]<=pos[0]-5:
             continue
         type,statOrEn,fnOrCn=parse_box(src[b[1]:b[1]+b[3],b[0]:b[0]+b[2]])
         if type=="folder" :
-            folders.append(fnOrCn)
+            if b[0]>=pos[0]+5:
+                folders.append(fnOrCn)
         else:
+            if b[0]>=pos[0]+22:
+                continue
             t=allPeopleMap
             for s in groupStack:
                 if s not in t:
                     t[s]={}
                 t=t[s]
             t[statOrEn]=(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
+
+    #folders=folders[:1]
+    for f in folders:
+        read_folder_recur(f)
+
+    if stat=="open":
+        pg.moveTo(pos[0],pos[1]+pic_rect[1])
+        pg.click()
 
     print("kkk")
 
