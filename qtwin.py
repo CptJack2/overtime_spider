@@ -128,9 +128,10 @@ class Form(QDialog):
         self.setMsg(msg)
         self.setMoney(self.money-10)
         sum=0
-        l=len(self.ele)
+        l=len(fig_list)
         for i,sc in enumerate(scl):
-            for j in range(sc+l-sum%l):
+            n=sc+(l-sum%l)%l
+            for j in range(n):
                 self.scroll_to_next(i)
                 for k in range(i+1, len(self.ele)):
                     self.scroll_to_next(k)
