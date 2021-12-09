@@ -70,26 +70,27 @@ class Form(QDialog):
     def greetings(self):
         if not self.pulling:
             self.pulling=True
-            threading.Thread(target = pulled_func,args=(random.sample(range(20,50),3),self)).start()
+            threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),3),)).start()
 
-def pulled_func(scl,widget):
-    #global money,win_text
-    # if money<=0:
-    #     win_text="you are broke!"
-    #     return
-    win_text=" "
-    # money-=10
-    for i,sc in enumerate(scl):
-        bi=fig_list.index(widget.ele[i])
-        for j in range(sc):
-            bi=(bi+1)%len(fig_list)
-            widget.ele[i]=fig_list[bi]
-            widget.label[i].setText(figure[widget.ele[i]])
-            time.sleep(widget.refresh_period/1000)
-    if widget.ele[0]==widget.ele[1] and widget.ele[1]==widget.ele[2]:
-        win_text="you win!"
-        # money+=1000
-    widget.pulling=False
+    def pulled_func(self,scl):
+        #global money,win_text
+        # if money<=0:
+        #     win_text="you are broke!"
+        #     return
+        win_text=" "
+        # money-=10
+        #scl=random.sample(range(20,50),3)
+        for i,sc in enumerate(scl):
+            bi=fig_list.index(self.ele[i])
+            for j in range(sc):
+                bi=(bi+1)%len(fig_list)
+                self.ele[i]=fig_list[bi]
+                self.label[i].setText(figure[self.ele[i]])
+                time.sleep(self.refresh_period/1000)
+        if self.ele[0]==self.ele[1] and self.ele[1]==self.ele[2]:
+            win_text="you win!"
+            # money+=1000
+        self.pulling=False
 
 if __name__ == '__main__':
     random.seed(int(time.time()))
