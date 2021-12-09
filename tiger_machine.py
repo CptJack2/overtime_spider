@@ -64,9 +64,9 @@ def show_fig():
 
 exit_sig=False
 
-def pulled_func():
+def pulled_func(scl):
     global money,win_text
-    scl=random.sample(range(20,50),3)
+    win_text=" "
     for i,sc in enumerate(scl):
         bi=fig_list.index(current_fig[i])
         for j in range(sc):
@@ -84,11 +84,15 @@ def func_thread():
         if key=="q":
             exit_sig=True
             break
-        if key=="p":
-            # bi=fig_list.index(current_fig[0])
-            # bi=(bi+1)%len(fig_list)
-            # current_fig=[fig_list[bi],fig_list[bi],fig_list[bi]]
-            pulled_func()
+        elif key=="p":
+            pulled_func(scl=random.sample(range(20,50),3))
+        elif key=="w":
+            di=random.randint(0,len(fig_list))
+            rs=random.sample(range(3),3)
+            cbi=[fig_list.index(current_fig[i]) for i in range(3)]
+            cbi=[(di-x)%len(fig_list) for x in cbi]
+            cbi=[a + b*len(fig_list) for a, b in zip(cbi, rs)]
+            pulled_func(cbi)
 
 ft = threading.Thread(target = func_thread)
 ft.start()
