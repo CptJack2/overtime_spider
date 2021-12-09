@@ -50,7 +50,7 @@ curses.noecho()
 
 current_fig=[sun,sun,sun]
 win_text=" "
-money=100
+money=10
 
 def random_fig():
     global current_fig
@@ -66,7 +66,11 @@ exit_sig=False
 
 def pulled_func(scl):
     global money,win_text
+    if money<=0:
+        win_text="you are broke!"
+        return
     win_text=" "
+    money-=10
     for i,sc in enumerate(scl):
         bi=fig_list.index(current_fig[i])
         for j in range(sc):
