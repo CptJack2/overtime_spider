@@ -53,6 +53,7 @@ class Form(QDialog):
         self.label= [QLabel(figure[sun]),QLabel(figure[sun]),QLabel(figure[sun])]
         self.ele=[sun,sun,sun]
         self.winmsg=QLabel("Hello!")
+        self.dollarSign=QLabel("$")
 
         # Create layout and add widgets
         layout = QVBoxLayout()
@@ -62,7 +63,7 @@ class Form(QDialog):
         layout.addLayout(hl)
 
         hl2=QHBoxLayout()
-        hl2.addWidget(QLabel("$"))
+        hl2.addWidget(self.dollarSign)
         hl2.addWidget(self.edit)
 
         layout.addLayout(hl2)
@@ -74,11 +75,24 @@ class Form(QDialog):
 
         # Add button signal to greetings slot
         self.button.clicked.connect(self.pulled)
+        self.button.clicked.connect(self.pulled)
+        self.dollarSign.mousePressEvent = self.wealthMagic
         self.edit.textChanged.connect(self.textChanged)
 
         self.refresh_period=50
         self.setMoney(1000)
 
+
+    def wealthMagic(self,ev):
+        if not self.pulling:
+            self.setMsg("You just got the wealth magic!")
+            self.pulling=True
+            di=random.randint(0,len(fig_list))
+            rs=random.sample(range(3),3)
+            cbi=[fig_list.index(self.ele[i]) for i in range(3)]
+            cbi=[(di-x)%len(fig_list) for x in cbi]
+            cbi=[a + b*len(fig_list) for a, b in zip(cbi, rs)]
+            threading.Thread(target = self.pulled_func,args=(cbi,)).start()
 
     def setMsg(self,msg):
         self.winmsg.setText(msg)
@@ -92,10 +106,10 @@ class Form(QDialog):
 
     def pulled(self):
         if not self.pulling:
-            self.pulling=True
             threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),3),)).start()
 
     def pulled_func(self,scl):
+        self.pulling=True
         if self.money<=0:
             self.setMsg("you are broke!")
             return
