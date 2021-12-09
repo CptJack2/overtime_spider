@@ -102,17 +102,23 @@ class Form(QDialog):
         self.edit.setText(str(n))
 
     def textChanged(self):
-        self.money=int(self.edit.text())
+        try:
+            n=int(self.edit.text())
+        except:
+            return
+        else:
+            self.money=n
 
     def pulled(self):
         if not self.pulling:
             threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),3),)).start()
 
     def pulled_func(self,scl):
-        self.pulling=True
         if self.money<=0:
             self.setMsg("you are broke!")
             return
+        self.pulling=True
+        self.setMsg("Hello!")
         self.setMoney(self.money-10)
         for i,sc in enumerate(scl):
             bi=fig_list.index(self.ele[i])
