@@ -43,7 +43,7 @@ figure={
     face:"☺",
 }
 
-class Form(QDialog):
+class Form(QMainWindow):
 
     def __init__(self, parent=None):
         super(Form, self).__init__(parent)
@@ -82,7 +82,9 @@ class Form(QDialog):
         layout.addWidget(self.history)
 
         # Set dialog layout
-        self.setLayout(layout)
+        self.central=QWidget()
+        self.central.setLayout(layout)
+        self.setCentralWidget(self.central)
 
         # Add button signal to greetings slot
         self.button.clicked.connect(self.pulled)
