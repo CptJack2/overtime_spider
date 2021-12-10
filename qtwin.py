@@ -57,6 +57,7 @@ class Form(QDialog):
         self.ele=[sun,sun,sun]
         self.winmsg=QLabel("Hello!")
         self.dollarSign=QLabel("$")
+        self.checkBox=QCheckBox("无限连抽")
 
         # Create layout and add widgets
         layout = QVBoxLayout()
@@ -71,6 +72,7 @@ class Form(QDialog):
 
         layout.addLayout(hl2)
         layout.addWidget(self.winmsg)
+        layout.addWidget(self.checkBox)
         layout.addWidget(self.button)
 
         # Set dialog layout
@@ -80,9 +82,17 @@ class Form(QDialog):
         self.button.clicked.connect(self.pulled)
         self.dollarSign.mousePressEvent = self.wealthMagic
         self.edit.textChanged.connect(self.textChanged)
+        self.checkBox.stateChanged.connect(self.boxChecked)
 
         self.refresh_period=50
         self.setMoney(1000)
+        self.unlimit=False
+
+    def boxChecked(self,state):
+        self.unlimit=state!=0
+        print("shit")
+        if not self.pulling:
+            threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),3),"Start infinite pulling!")).start()
 
     def wealthMagic(self,ev):
         if not self.pulling:
@@ -126,22 +136,25 @@ class Form(QDialog):
             return
         self.pulling=True
         self.setMsg(msg)
-        self.setMoney(self.money-10)
-        sum=0
-        l=len(fig_list)
-        for i,sc in enumerate(scl):
-            n=sc+(l-sum%l)%l
-            for j in range(n):
-                self.scroll_to_next(i)
-                for k in range(i+1, len(self.ele)):
-                    self.scroll_to_next(k)
-                sum+=1
-                time.sleep(self.refresh_period/1000)
-        if self.ele[0]==self.ele[1] and self.ele[1]==self.ele[2]:
-            self.setMsg("you win!")
-            self.setMoney(self.money+1000)
-        else:
-            self.setMsg("Good luck next time!")
+        while 1:
+            self.setMoney(self.money-10)
+            sum=0
+            l=len(fig_list)
+            for i,sc in enumerate(scl):
+                n=sc+(l-sum%l)%l
+                for j in range(n):
+                    self.scroll_to_next(i)
+                    for k in range(i+1, len(self.ele)):
+                        self.scroll_to_next(k)
+                    sum+=1
+                    time.sleep(self.refresh_period/1000)
+            if self.ele[0]==self.ele[1] and self.ele[1]==self.ele[2]:
+                self.setMsg("you win!")
+                self.setMoney(self.money+1000)
+            else:
+                self.setMsg("Good luck next time!")
+            if not self.unlimit:
+                break
         self.pulling=False
 
 if __name__ == '__main__':
