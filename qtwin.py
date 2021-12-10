@@ -52,7 +52,7 @@ class Form(QDialog):
         # Create widgets
         self.edit = QLineEdit()
         self.button = QPushButton("PULL FOR LUCK!")
-        self.nlabel=5
+        self.nlabel=8
         self.label=[]
         self.ele=[]
         for i in range(self.nlabel):
@@ -97,7 +97,7 @@ class Form(QDialog):
     def boxChecked(self,state):
         self.unlimit=state!=0
         if not self.pulling:
-            threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),self.nlabel),"Start infinite pulling!")).start()
+            threading.Thread(target = self.pulled_func,args=([random.randint(20,50) for i in range(self.nlabel)],"Start infinite pulling!")).start()
 
     def wealthMagic(self,ev):
         if not self.pulling:
@@ -127,7 +127,7 @@ class Form(QDialog):
 
     def pulled(self):
         if not self.pulling:
-            threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),self.nlabel),"Hello!")).start()
+            threading.Thread(target = self.pulled_func,args=([random.randint(20,50) for i in range(self.nlabel)],"Hello!")).start()
 
     def scroll_to_next(self,index):
         bi=fig_list.index(self.ele[index])
