@@ -1,3 +1,4 @@
+import datetime
 import sys
 import threading
 import time
@@ -58,6 +59,7 @@ class Form(QDialog):
         self.winmsg=QLabel("Hello!")
         self.dollarSign=QLabel("$")
         self.checkBox=QCheckBox("无限连抽")
+        self.history=QListWidget()
 
         # Create layout and add widgets
         layout = QVBoxLayout()
@@ -74,6 +76,7 @@ class Form(QDialog):
         layout.addWidget(self.winmsg)
         layout.addWidget(self.checkBox)
         layout.addWidget(self.button)
+        layout.addWidget(self.history)
 
         # Set dialog layout
         self.setLayout(layout)
@@ -138,6 +141,8 @@ class Form(QDialog):
         self.setMsg(msg)
         while 1:
             self.setMoney(self.money-10)
+            now = datetime.datetime.now().strftime("%H:%M:%S")
+            self.history.addItem(f"[{now}]pulled, -$10")
             sum=0
             l=len(fig_list)
             for i,sc in enumerate(scl):
@@ -151,6 +156,8 @@ class Form(QDialog):
             if self.ele[0]==self.ele[1] and self.ele[1]==self.ele[2]:
                 self.setMsg("you win!")
                 self.setMoney(self.money+1000)
+                now = datetime.datetime.now().strftime("%H:%M:%S")
+                self.history.addItem(f"[{now}]win big prize! +$1000")
             else:
                 self.setMsg("Good luck next time!")
             if not self.unlimit:
