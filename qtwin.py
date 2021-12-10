@@ -52,10 +52,13 @@ class Form(QDialog):
         # Create widgets
         self.edit = QLineEdit()
         self.button = QPushButton("PULL FOR LUCK!")
-        self.label= [QLabel(figure[sun]),QLabel(figure[sun]),QLabel(figure[sun])]
-        for l in self.label:
-            l.setFont(QFont("Times", 50))
-        self.ele=[sun,sun,sun]
+        self.nlabel=5
+        self.label=[]
+        self.ele=[]
+        for i in range(self.nlabel):
+            self.label.append(QLabel(figure[sun]))
+            self.label[i].setFont(QFont("Times", 50))
+            self.ele.append(sun)
         self.winmsg=QLabel("Hello!")
         self.dollarSign=QLabel("$")
         self.checkBox=QCheckBox("无限连抽")
@@ -94,15 +97,15 @@ class Form(QDialog):
     def boxChecked(self,state):
         self.unlimit=state!=0
         if not self.pulling:
-            threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),3),"Start infinite pulling!")).start()
+            threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),self.nlabel),"Start infinite pulling!")).start()
 
     def wealthMagic(self,ev):
         if not self.pulling:
             self.setMsg("You just got the wealth magic!")
             self.pulling=True
             di=random.randint(0,len(fig_list))
-            rs=random.sample(range(3),3)
-            cbi=[fig_list.index(self.ele[i]) for i in range(3)]
+            rs=[random.randint(1,4) for i in range(self.nlabel)]
+            cbi=[fig_list.index(self.ele[i]) for i in range(self.nlabel)]
             cbi=[(di-x)%len(fig_list) for x in cbi]
             cbi=[a + b*len(fig_list) for a, b in zip(cbi, rs)]
             threading.Thread(target = self.pulled_func,args=(cbi,"You just got the wealth magic!")).start()
@@ -124,7 +127,7 @@ class Form(QDialog):
 
     def pulled(self):
         if not self.pulling:
-            threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),3),"Hello!")).start()
+            threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),self.nlabel),"Hello!")).start()
 
     def scroll_to_next(self,index):
         bi=fig_list.index(self.ele[index])
@@ -152,7 +155,13 @@ class Form(QDialog):
                         self.scroll_to_next(k)
                     sum+=1
                     time.sleep(self.refresh_period/1000)
-            if self.ele[0]==self.ele[1] and self.ele[1]==self.ele[2]:
+            win=True
+            symbol=self.ele[0]
+            for l in self.ele:
+                if l!=symbol:
+                    win=False
+                    break
+            if win:
                 self.setMsg("you win!")
                 self.setMoney(self.money+1000)
                 now = datetime.datetime.now().strftime("%H:%M:%S")
