@@ -93,7 +93,6 @@ class Form(QDialog):
 
     def boxChecked(self,state):
         self.unlimit=state!=0
-        print("shit")
         if not self.pulling:
             threading.Thread(target = self.pulled_func,args=(random.sample(range(20,50),3),"Start infinite pulling!")).start()
 
